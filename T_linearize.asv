@@ -47,7 +47,6 @@ view(3)
 xlabel('T_M')
 ylabel('n')
 zlabel('\phi')
-title("\phi = T^{-1}(T, n)")
 
 % figure(3)
 % xlabel("\phi")
