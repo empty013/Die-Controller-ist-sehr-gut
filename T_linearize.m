@@ -49,82 +49,43 @@ ylabel('n')
 zlabel('\phi')
 title("\phi = T^{-1}(T, n)")
 
-% figure(3)
-% xlabel("\phi")
-% ylabel("v")
-% zlabel("T_M")
-% hold on
-
 options_fsolve = optimoptions(@fsolve, "Display", "iter", ...
     "Algorithm", "trust-region-dogleg");
-
-
 T_n = 50;
 n_n = 50;
 n_step = floor(n_res / n_n);
 n_indices = 1:n_step:n_res;
 
 phi_sol_mesh = zeros(n_n, T_n);
-% v_arr_true = linspace(0, 19, v_n);
 T_sol_mesh = zeros(n_n, T_n);
 n_sol_mesh = zeros(n_n, T_n);
-% [v_mesh_true, T_mesh_true] = meshgrid()
+res_sum = 0; % Check for quality of T^-1, should be small
+% Numerically calculate phi = T^-1(T, n) and collect in mesh for fitting.
+% Done row-wise for each n in. 
 for id = 1:length(n_indices)
     n_idx = n_indices(id);
+    n_arr_true = repmat(n_mesh(n_idx, 1), 1, T_n);
     phi_max_idx = ind(n_idx);
     phi_max = phi_arr(phi_max_idx);
     
-    % phi_arr_true = linspace(0, phi_max, T_n);
-    n_arr_true = repmat(n_mesh(n_idx, 1), 1, T_n);
     T_min = T_mesh(n_idx, 1);
     T_max = T_mesh(n_idx, phi_max_idx);
     T_arr_true = linspace(T_min, T_max, T_n);
-    % T_arr_true = T_M_f(phi_arr_true, v_arr_true);
 
     T_res = @(phi) T_M_f(phi, n_arr_true) - T_arr_true;
-    % phi0 = zeros(size(T_arr_true)) + 0.2;
     phi0 = linspace(0, phi_max, T_n);
     [phi_sol, fval] = fsolve(T_res, phi0, options_fsolve);
+    res_sum = res_sum + sum(fval);
     T_sol_mesh(id, :) = T_arr_true;
     n_sol_mesh(id, :) = n_arr_true;
     phi_sol_mesh(id, :) = phi_sol;
 
     figure(3)
     plot3(T_arr_true, n_arr_true, phi_sol);
-    % plot3(T_arr_true, v_arr_true, T_inv(T_arr_true))
-    
-    % figure(1)
-    % plot3(phi_arr_true, v_arr_true, ...
-    %     T_approx(phi_arr_true, params_sol), 'g', 'LineWidth', 2)
-    
-    % figure(2)
-    % T_inv_subs = simplify(subs(T_inv_sym, c, params_sol));
-    % T_inv = matlabFunction(T_inv_subs);
-    % phi_arr_test = phi_arr(1:ind(v_idx));
-    % v_arr_test = v_mesh(v_idx, 1:ind(v_idx));
-    % T_arr_test = T_mesh(v_idx, 1:ind(v_idx));
-    % phi_inv_test = T_inv(T_arr_test);
-    % plot3(phi_arr_test, v_arr_test, phi_inv_test);
-    % plot3(phi_arr_test([1,end]), v_arr_test([1,end]), ...
-    %     phi_arr_test([1,end]), 'r')
-    
-    % eval_abs = abs(phis_inv - phis(1:ind(idx)));
-    % eval_data = eval_abs ./ phis(1:ind(idx));
-    % [~, eval_ind] = max(eval_data(2:end));
-
-    % tmp = T_approx(phis_inv, params_sol)
-    % figure(3)
-    % plot3(phi_arr(1:ind(idx)), v_mesh(idx, 1:ind(idx)), ...
-    %     T_approx(phis_inv, params_sol), 'k', 'LineWidth', 2)
-
-    % figure(1)
-    % plot3(phi_arr_true, v_arr_true, ...
-    %     T_inv(T_mesh(idx, 1:ind(idx))));
-    % plot3(phi_arr(1:ind(idx)), v_arr_true, ...
-    %     T_approx(phis_inv, params_sol), 'k', 'LineWidth', 2)
 end
 
-[xData, yData, zData] = prepareSurfaceData( T_sol_mesh, n_sol_mesh, phi_sol_mesh );
+[xData, yData, zData] = prepareSurfaceData( T_sol_mesh, n_sol_mesh, ...
+                                            phi_sol_mesh );
 
 % Set up fittype and options.
 ft = fittype( 'poly55' );
@@ -133,6 +94,8 @@ ft = fittype( 'poly55' );
 [fitresult, gof] = fit( [xData, yData], zData, ft, 'Normalize', 'off' );
 
 coeffs2 = num2cell(coeffvalues(fitresult));
+% For later, this way can create 2d poly from vector.
+% ATTENTION: Curve fitting toolbox needed!!!!!!!!!!!!!!!!??????????????
 coeffs = {0.232540660594679	0.114393289007004	0.0779463002016656	...
     0.0115624070879991	-0.00427974336827419	-0.0102118361339179	...
     -0.00145644719122835	0.0184573885301343	0.0300930337094600	...
@@ -144,14 +107,6 @@ T_inv = sfit(ft, coeffs2{:});
 
 figure(2)
 n_idx = 2;
-% surf(T_sol_mesh, n_sol_mesh, fitresult(T_sol_mesh, n_sol_mesh));
-% phi_arr_test = phi_arr(1:ind(n_idx));
-% n_arr_test = n_mesh(n_idx, 1:ind(n_idx));
-% T_arr_test = T_mesh(n_idx, 1:ind(n_idx));
-% phi_inv_test = T_inv(T_arr_test, n_arr_test);
-% plot3(phi_arr_test, n_arr_test, phi_inv_test);
-% plot3(phi_arr_test([1,end]), n_arr_test([1,end]), ...
-%     phi_arr_test([1,end]), 'r')
 
 plot3(phi_sol_mesh.', n_sol_mesh.', T_inv(T_sol_mesh, n_sol_mesh).')
 plot3(phi_sol_mesh(:,[1,end]).', n_sol_mesh(:,[1,end]).', ...
