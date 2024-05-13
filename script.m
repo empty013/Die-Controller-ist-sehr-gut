@@ -96,14 +96,14 @@ end
 
 %lateral rear force
 function F_yr = lateralRearForce()
-    alpha_r = arctan((lr*psi_dot - v*sin(beta))/(v*cos(beta)));
-    F_yr = Dr*sin(Cr*arctan(Br*alpha_r - Er(Br*alpha_r - arctan(Br*alpha_r))))
+    alpha_r = atan((lr*psi_dot - v*sin(beta))/(v*cos(beta)));
+    F_yr = Dr*sin(Cr*atan(Br*alpha_r - Er(Br*alpha_r - atan(Br*alpha_r))))
 end
 
 %lateral front force
 function F_yf = lateralFrontForce(psi_dot, v, beta)
-    alpha_f = delta - arctan((lf*psi_dot - v*sin(beta))/(v*cos(beta)));
-    F_yf = Df*sin(Cf*arctan(Bf*alpha_f - Ef*(Bf*alpha_f - arctan(Bf*alpha_f))));
+    alpha_f = delta - atan((lf*psi_dot - v*sin(beta))/(v*cos(beta)));
+    F_yf = Df*sin(Cf*atan(Bf*alpha_f - Ef*(Bf*alpha_f - atan(Bf*alpha_f))));
 end
 
 %motor torque
