@@ -6,6 +6,8 @@ phi_res = 50;
 v_arr = linspace(v_min, v_max, v_res);
 phi_arr = linspace(0, 1, phi_res);
 [phi_mesh, v_mesh]  = meshgrid(phi_arr, v_arr);
+T_test = 1.1883e+04;
+T_real = 1.5282e+03;
 
 syms v phi
 R = 0.302;

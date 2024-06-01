@@ -106,7 +106,7 @@ coeffs = {0.232540660594679	0.114393289007004	0.0779463002016656	...
     0.00861505668499663	0.00347726441814111	0.0148511673968274	...
     0.0162403456177435	0.0308870560261451	0.0231914355019211};
 T_inv = sfit(ft, coeffs2{:});
-
+save("..\template_Matlab\T_inv", "T_inv");
 
 figure(2)
 % For plotting only the selected values of the mesh that were also fitted.
