@@ -1,4 +1,5 @@
 function simulate_controlled_singletrack(t_f)
+global X_0 t_delta
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% function simulate_controlled_singletrack(t_f)
 %
@@ -23,10 +24,10 @@ racetrack % builds the racetrack and saves it as racetrack.mat
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INTEGRATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-X_0=[-2.5;0;0;0;pi/2;0;0;0;0;0]; % initial value for integration
-% X_0=[-2.5;240;0;0;pi/2;0;0;0;0;0]; % initial value for integration
-% X_0=[22.5;340;0;0;3*pi/2+0.07;0;0;0;0;0]; % initial value for integration
-tspan = 0:0.01:t_f;
+% X_0=[-2.5;0;0;0;pi/2;0;0;0;0;0]; % initial value for integration
+% % X_0=[-2.5;240;0;0;pi/2;0;0;0;0;0]; % initial value for integration
+% % X_0=[22.5;340;0;0;3*pi/2+0.07;0;0;0;0;0]; % initial value for integration
+tspan = 0:t_delta:t_f;
 [Y, U, debug] =ode1(@singletrack,tspan,X_0); % integrate with step zise 0.001
 
 %%
