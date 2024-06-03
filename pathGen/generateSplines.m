@@ -1,4 +1,4 @@
-clear; close all
+clear; %close all
 load("referenceMCP.mat", "tMCP")
 load('racetrack.mat','t_r'); % load right  boundary from *.mat file
 load('racetrack.mat','t_l'); % load left boundary from *.mat file
@@ -10,8 +10,9 @@ curve = cscvn(tMCP_selection.');
 
 figure
 hold on
-fnplt(curve); 
-plot(tMCP_selection(:,1), tMCP_selection(:,2), 'k.')
+fnplt(curve);
+fnplt(curve, [0, 113], "r")
+% plot(tMCP_selection(:,1), tMCP_selection(:,2), 'k.')
 plot(t_r(:,1),t_r(:,2)) % plot right racetrack boundary
 plot(t_l(:,1),t_l(:,2)) % plot left racetrack boundary
 
@@ -32,13 +33,17 @@ d2xi = ppval(x_spline_ds2,t_span);
 d2yi = ppval(y_spline_ds2,t_span);
 % K = abs(d1xi.*d2yi - d2xi.*d1yi) ./ sqrt(d1xi.^2+d1yi.^2).^3; 
 K = (d1xi.*d2yi - d2xi.*d1yi) ./ sqrt(d1xi.^2+d1yi.^2).^3; % Signed curvature
+% K_f = (x_spline_ds * y_spline_ds2);
 
 tan_vec = [d1xi; d1yi] ./ vecnorm([d1xi; d1yi], 1);
 ortho_vec = [cos(pi/2), -sin(pi/2); sin(pi/2), cos(pi/2)] * tan_vec;
 ortho_vec_curve = K .* ortho_vec;
 
-quiver(xi, yi, ortho_vec_curve(1,:), ortho_vec_curve(2,:), 1)
+% quiver(xi, yi, ortho_vec_curve(1,:), ortho_vec_curve(2,:), 1)
+% quiver(xi, yi, d1xi, d1yi);
 axis equal
+save("referenceSplines.mat", "x_spline", "x_spline_ds", "x_spline_ds2", ...
+    "y_spline", "y_spline_ds", "y_spline_ds2");
 
 function ppdf = differentiate(ppf)
 % Spline Derivative
