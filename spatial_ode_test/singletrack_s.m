@@ -106,35 +106,52 @@ function [X_dot, U, debug] = singletrack_s(s,X)
 
 addpath("..\controller_synth\")
 addpath("..\pathGen\")
+load("input_recording.mat", "U_arr");
 % q = [e_y; e_psi; v; beta; omega; t];
 % u = [u1; F_b; zeta; delta];
 % ref = [k_ref; psi_ref];
 [ref(1:2), ~, ~] = referencePath(s);
-e_y = X(1);
-e_psi = X(2);
-v = X(3);
+
+%% Recorded input
+% persistent ii
+% if isempty(ii)
+%     ii = 1;
+% end
+% U = zeros(4, 1);
+% if ii <= size(U_arr, 1)
+%     U([1,2,4]) = U_arr(ii, :).';
+% end
+% ii = ii + 1;
+
+%% MPC
+U = u_NMPC_s(s, X);
+
+%% P-Control
+% e_y = X(1);
+% e_psi = X(2);
+% v = X(3);
 
 % ref = [0, pi/2];
 % q0 = [0; 0; 1; 0; 0; 0];
 % U = [0; 0; 0; 0];
 % ref0 = [0; pi/2];
 
-kp_v = 10000;
-v_ref = 5;
-v_err = v - v_ref;
-u_v = - kp_v * v_err;
-U(1) = u_v;
-
-F_b = 0;
-U(2) = F_b;
-
-zeta = 1;
-U(3) = zeta;
-
-kp_e_y = 0.3;
-kp_e_psi = 2;
-delta = - kp_e_y * e_y - kp_e_psi * e_psi;
-U(4) = delta;
+% kp_v = 10000;
+% v_ref = 5;
+% v_err = v - v_ref;
+% u_v = - kp_v * v_err;
+% U(1) = u_v;
+% 
+% F_b = 0;
+% U(2) = F_b;
+% 
+% zeta = 1;
+% U(3) = zeta;
+% 
+% kp_e_y = 0.3;
+% kp_e_psi = 2;
+% delta = - kp_e_y * e_y - kp_e_psi * e_psi;
+% U(4) = delta;
 % if u_v >= 0
 %     R = 0.302;
 %     i0 = 3.91;
@@ -152,7 +169,7 @@ U(4) = delta;
 %     Fb = -u_v;
 % end
 
-X_dot = f_s(X, U.', ref.');
+X_dot = f_s(X, U, ref.');
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DYNAMICS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

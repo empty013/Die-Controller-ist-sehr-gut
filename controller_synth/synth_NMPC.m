@@ -1,83 +1,150 @@
-clear;
-syms beta v omega
-syms u1 F_b zeta delta
-syms x_ref y_ref k_ref psi_ref
-syms e_y e_psi t
-q = [e_y; e_psi; v; beta; omega; t];
-u = [u1; F_b; zeta; delta];
-ref = [k_ref; psi_ref];
-m=1239; % vehicle mass
-g=9.81; % gravitation
-l_f=1.19016; % distance of the front wheel to the center of mass 
-l_r=1.37484; % distance of the rear wheel to the center of mass
-l = l_r + l_f;
-R=0.302; % wheel radius
-I_z=1752; % vehicle moment of inertia (yaw axis)
-I_R=1.5; % wheel moment of inertia
-r0=0.009; % coefficient (friction)
-r1=0.002; % coefficient (friction)
-r4=0.0003; % coefficient (friction)
+% function u = synth_NMPC(s, q0)
+clear; 
+addpath("..\pathGen\")
+% load("constraints", "ref_func", "x0_f", "lb_f", "ub_f");
+load("constraints", "k_ref_func", "x0_f", "lb", "ub", "s_end", "s_delta");
+opts = optimoptions('fmincon','Algorithm','interior-point', 'Display','none', ...
+    "MaxFunctionEvaluations",3000, "UseParallel",true);%, 'SpecifyConstraintGradient',true);
+% s_end = 0.5;
+% s_delta = 0.01;
+N = s_end / s_delta;
 
-B_f=10.96; % stiffnes factor (Pacejka) (front wheel)
-C_f=1.3; % shape factor (Pacejka) (front wheel)
-D_f=4560.4; % peak value (Pacejka) (front wheel)
-E_f=-0.5; % curvature factor (Pacejka) (front wheel)
-B_r=12.67; %stiffnes factor (Pacejka) (rear wheel)
-C_r=1.3; %shape factor (Pacejka) (rear wheel)
-D_r=3947.81; %peak value (Pacejka) (rear wheel)
-E_r=-0.5; % curvature factor (Pacejka) (rear wheel)
+% s = 113;
+s = 0;
+% q0 = [0.105; 0.437; 3; 0; 0; 0];
+q0 = [0.1; 0; 3; 0; 0; 0];
+e_y = [q0(1)];
+e_psi = [q0(2)];
+v = [q0(3)];
+beta = [q0(4)];
+omega = [q0(5)];
+t = [q0(6)];
+
+u1 = [];
+F_b = [];
+zeta = [];
+delta = [];
+x_ref_arr = [];
+y_ref_arr = [];
+psi_ref_arr = [];
+k_ref_arr = [];
+sspan_arr = [];
+
+iters = 5;
+for ii = 1:iters
+    ii
+    k_ref = k_ref_func(s);
+    x0 = x0_f(q0);
+    % lb = lb_f(q0);
+    % ub = ub_f(q0);
+    f = @costFunction;
+    nonlin = @(x) c_nonlin(x, q0, k_ref);
+    % f = @(x) costFunction(x, ref);
+    
+    tic
+    [sol, fval, ~, output] = fmincon(f, x0, [], [], [], [], lb, ub, nonlin, opts);
+    toc
+    
+    start_state = 3;
+    start_input = 1;
+    stride = 8;
+    e_y = [e_y; sol(start_state:stride:end)];
+    e_psi = [e_psi; sol(start_state+1:stride:end)];
+    v = [v; sol(start_state+2:stride:end)];
+    beta = [beta; sol(start_state+3:stride:end)];
+    omega = [omega; sol(start_state+4:stride:end)];
+    t = [t; sol(start_state+5:stride:end)];
+    
+    u1 =  [u1; sol(start_input:stride:end)];
+    % F_b = [F_b; sol(start_input+1:stride:end)];
+    % zeta = [zeta; sol(start_input+2:stride:end)];
+    delta = [delta; sol(start_input+1:stride:end)];
+    
+    sspan = linspace(s, s + s_end, N);
+    sspan_arr = [sspan_arr(1:end-1), sspan];
+    [k_ref, psi_ref, x_ref, y_ref] = referencePath(sspan);
+    x_ref_arr = [x_ref_arr(1:end-1), x_ref];
+    y_ref_arr = [y_ref_arr(1:end-1), y_ref];
+    psi_ref_arr = [psi_ref_arr(1:end-1); psi_ref.'];
+    k_ref_arr = [k_ref_arr(1:end-1); k_ref.'];
+    
+    % s = s + s_end;
+    x_glob = x_ref_arr(end) - e_y(end) .* sin(psi_ref(end));
+    y_glob = y_ref_arr(end) + e_y(end) .* cos(psi_ref(end));
+    s = find_s([x_glob; y_glob]);
+    
+    q0 = [e_y(end); e_psi(end); v(end); beta(end); omega(end); t(end)];
+    q0 = [e_y(end); e_psi(end); v(end); beta(end); omega(end); 0];
+end
+%%
+close all
+sspan = sspan_arr;
+U_arr = [u1, F_b, zeta, delta];
+save("input_recording", "U_arr")
+
+x = x_ref_arr.' - e_y .* sin(psi_ref_arr);
+y = y_ref_arr.' + e_y .* cos(psi_ref_arr);
+% TODO: CHECK e_psi!!!
+% Not matching with graph
+
+load('racetrack.mat','t_r'); % load right  boundary from *.mat file
+load('racetrack.mat','t_l'); % load left boundary from *.mat file
+f1 = figure('Name','racetrack','NumberTitle','off','Toolbar','figure','MenuBar','none');%,'OuterPosition',[0 0 460 1100]) % creates window for plot
+hold on
+axis equal
+plot(t_r(:,1),t_r(:,2)) % plot right racetrack boundary
+plot(t_l(:,1),t_l(:,2)) % plot left racetrack boundary
+plot(x,y,'r') % plot the x and y coordinates resulting fromy your controller
+xlabel('x') % label x axis
+ylabel('y') % label y axies
+plot(x_ref_arr, y_ref_arr, 'g')
+
+figure("Name", "States", "WindowState","maximized")
+sgtitle("States")
+subplot(6, 1, 1)
+plot(sspan, e_y)
+ylabel("e_y")
+
+subplot(6, 1, 2)
+plot(sspan, e_psi)
+ylabel("e_{\psi}")
+
+subplot(6, 1, 3)
+plot(sspan, v)
+ylabel("v")
+
+subplot(6, 1, 4)
+plot(sspan, beta)
+ylabel("\beta")
+
+subplot(6, 1, 5)
+plot(sspan, omega)
+ylabel("\omega")
+
+subplot(6, 1, 6)
+plot(sspan, t)
+ylabel("t")
 
 
-psi = psi_ref + e_psi;
-% psi_dot = omega;
-% x_dot = v * cos(psi - beta);
-% y_dot = v * sin(psi - beta);
-x_dot = v * cos(beta);
-y_dot = v * sin(beta);
 
-mu = r0 + r1 * v + r4 * v^4;
-a_f = delta - atan((l_f * omega - v * sin(beta)) / v * cos(beta));
-a_r = atan((l_r * omega + v * sin(beta)) / v * cos(beta));
-F_x_f = (1 - zeta) * F_b - mu * m * g * l_r / l;
-F_x_r = u1 - zeta * F_b - mu * m * g * l_r / l;
-F_y_f = D_f * sin(C_f ...
-    * atan(B_f *a_f - E_f * (B_f * a_f - atan(B_f * a_f))));
-F_y_r = D_r * sin(C_r ...
-    * atan(B_r *a_r - E_r * (B_r * a_r - atan(B_r * a_r))));
+figure("Name", "Controls", "WindowState","maximized")
 
+tspan = sspan(1:end-1);
+sgtitle("Control Inputs")
+subplot(2, 1, 1)
+plot(tspan, u1, "DisplayName", "u1")
+ylabel("u1")
 
-v_dot = 1/m * (F_x_r * cos(beta) + F_x_f * cos(delta + beta)...
-            - F_y_r * sin(beta) - F_y_f * sin(delta + beta));
-beta_dot = omega - 1 / (m*v) ...
-    * (F_x_r * sin(beta) + F_x_f * sin(delta + beta) ...
-       + F_y_r * cos(beta) + F_y_f * cos(delta + beta));
-psi_dot2 = 1/I_z * (F_y_f * l_f * cos(delta) - F_y_r * l_r ...
-                    + F_x_f * l_f * sin(delta));
+% subplot(4, 1, 2)
+% plot(tspan, F_b, "DisplayName", "F_b")
+% ylabel("F_b")
 
+% subplot(4, 1, 3)
+% plot(tspan, zeta, "DisplayName", "\zeta")
+% ylabel("\zeta")
 
-% e_y = cos(psi_ref) * (y - y_ref) - sin(psi_ref) * (x - x_ref);
-% phi_ref = atan2(y_ref, x_ref);
-% e_phi = phi - phi_ref;
-s_dot = 1 / (1 - e_y * k_ref) * (x_dot * cos(e_psi) - y_dot * sin(e_psi));
-beta_dot = simplify(beta_dot / s_dot);
-v_dot = simplify(v_dot / s_dot);
-psi_dot2 = simplify(psi_dot2 / s_dot);
-% psi_dot = psi_dot / s_dot;
+subplot(2, 1, 2)
+plot(tspan, delta, "DisplayName", "\delta")
+ylabel("\delta")
 
-
-e_psi_dot = omega / s_dot - k_ref;
-e_y_dot = (x_dot * sin(e_psi) + y_dot * cos(e_psi)) / s_dot;
-t_dot = 1 / s_dot;
-
-f_sym = [e_y_dot; e_psi_dot; v_dot; beta_dot; psi_dot2; t_dot];
-
-f = matlabFunction(f_sym, "Vars", {q; u; ref}, "File","f_s");
-% f = matlabFunction(f_sym, "Vars", {q; u; ref});
-s_dot_f = matlabFunction(s_dot, "Vars", {q; u; ref});
-
-q0 = [0; 0; 1; 0; 0; 0];
-u0 = zeros(size(u));
-ref0 = [0; pi/2];
-
-f(q0, u0, ref0)
-s_dot_f(q0, u0, ref0)
+figure(f1)

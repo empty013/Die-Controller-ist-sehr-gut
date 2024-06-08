@@ -27,6 +27,7 @@ plot(t_r(:,1),t_r(:,2)) % plot right racetrack boundary
 plot(t_l(:,1),t_l(:,2)) % plot left racetrack boundary
 text(1,0,'\leftarrow finish/start','HorizontalAlignment','left') % finish/start annotation
 plot(debug(:,1),debug(:,2),'r') % plot the x and y coordinates resulting fromy your controller
+plot(debug(:,3),debug(:,4),'g')
 xlabel('x') % label x axis
 ylabel('y') % label y axies
 % box % make a box around the plot
@@ -62,21 +63,22 @@ ylabel("t")
 figure("Name", "Controls", "WindowState","maximized")
 tspan = sspan(1:end-1);
 sgtitle("Control Inputs")
-subplot(5, 1, 1)
+subplot(2, 1, 1)
 plot(tspan, U(:, 1), "DisplayName", "u1")
 ylabel("u1")
 
-subplot(5, 1, 2)
-plot(tspan, U(:, 4), "DisplayName", "\delta")
+% subplot(4, 1, 2)
+% plot(tspan, U(:, 2), "DisplayName", "F_b")
+% ylabel("F_b")
+
+% subplot(4, 1, 3)
+% plot(tspan, U(:, 3), "DisplayName", "\zeta")
+% ylabel("\zeta")
+
+subplot(2, 1, 2)
+plot(tspan, U(:, 2), "DisplayName", "\delta")
 ylabel("\delta")
 
-% subplot(5, 1, 3)
-% plot(tspan, U(:, 3), "DisplayName", "F_b")
-% ylabel("F_b")
-% 
-% subplot(5, 1, 4)
-% plot(tspan, U(:, 4), "DisplayName", "\zeta")
-% ylabel("\zeta")
 % 
 % subplot(5, 1, 5)
 % plot(tspan, U(:, 5), "DisplayName", "\phi")

@@ -18,5 +18,5 @@ X_0=[x0;y0;v0;0;psi0;0;0;0;0;0];
 controller_func = @u_NMPC;
 t_delta = 0.01;
 tic
-simulate_controlled_singletrack(3*0.5)
+simulate_controlled_singletrack(0.5)
 toc

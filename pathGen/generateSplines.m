@@ -41,9 +41,14 @@ ortho_vec_curve = K .* ortho_vec;
 
 % quiver(xi, yi, ortho_vec_curve(1,:), ortho_vec_curve(2,:), 1)
 % quiver(xi, yi, d1xi, d1yi);
+fnprime = fnder(curve);
+Lfun = @(s) sqrt(sum(fnval(fnprime,s).^2,1));
+L = integral(Lfun,curve.breaks(1),curve.breaks(end))
 axis equal
 save("referenceSplines.mat", "x_spline", "x_spline_ds", "x_spline_ds2", ...
-    "y_spline", "y_spline_ds", "y_spline_ds2");
+    "y_spline", "y_spline_ds", "y_spline_ds2", "L");
+
+
 
 function ppdf = differentiate(ppf)
 % Spline Derivative

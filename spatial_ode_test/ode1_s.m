@@ -48,8 +48,8 @@ end
 neq = length(y0);
 N = length(sspan);
 Y = zeros(neq,N);
-U_arr = zeros(4, N-1);
-debug = zeros(2, N);
+U_arr = zeros(2, N-1);
+debug = zeros(4, N);
 
 % q = [e_y; e_psi; v; beta; omega; t];
 [~, psi_ref, x_ref, y_ref] = referencePath(0);
@@ -59,18 +59,22 @@ Y(:,1) = y0;
 psi_ref = pi/2;
 debug(1, 1) = x_ref - y0(1) * sin(psi_ref);
 debug(2, 1) = y_ref - y0(1) * cos(psi_ref);
+debug(3, 1) = x_ref;
+debug(4, 1) = y_ref;
 tic
 for i = 1:N-1 
   % i
-  if mod(i, 200) == 0
+  if mod(i, 10) == 0
       i
   end
   [dY_i, U_i] = feval(odefun,sspan(i),Y(:,i),varargin{:});
   Y(:,i+1) = Y(:,i) + h(i)*dY_i;
   [~, psi_ref, x_ref, y_ref] = referencePath(sspan(i+1));
   debug(1, i+1) = x_ref - Y(1, i+1) * sin(psi_ref);
+  debug(3, i+1) = x_ref;
   % y_ref = sspan(i+1);
-  debug(2, i+1) = y_ref - Y(2, i+1) * cos(psi_ref);
+  debug(2, i+1) = y_ref + Y(1, i+1) * cos(psi_ref);
+  debug(4, i+1) = y_ref;
   U_arr(:,i) = U_i;
   % debug(:,i) = debug_i;
 end

@@ -76,23 +76,42 @@ ylabel("\phi")
 xlabel("t")
 
 
-
 figure("Name", "Error", "WindowState","maximized")
 sgtitle("Errors")
 subplot(4,1,1)
 plot(tspan, debug(:, 1))
-ylabel("v_{err}")
+ylabel("e_y")
 
 subplot(4,1,2)
 plot(tspan, debug(:, 2))
-ylabel("x_{err}")
+ylabel("e_{psi}")
 
 subplot(4,1,3)
 plot(tspan, debug(:, 3))
-ylabel("x_int_{err}")
+ylabel("s")
 
-subplot(4,1,4)
-plot(tspan, debug(:, 4))
-ylabel("x_der_{err}")
+% subplot(4,1,4)
+% plot(tspan, debug(:, 4))
+% ylabel("x_der_{err}")
+
+
+
+% figure("Name", "Error", "WindowState","maximized")
+% sgtitle("Errors")
+% subplot(4,1,1)
+% plot(tspan, debug(:, 1))
+% ylabel("v_{err}")
+% 
+% subplot(4,1,2)
+% plot(tspan, debug(:, 2))
+% ylabel("x_{err}")
+% 
+% subplot(4,1,3)
+% plot(tspan, debug(:, 3))
+% ylabel("x_int_{err}")
+% 
+% subplot(4,1,4)
+% plot(tspan, debug(:, 4))
+% ylabel("x_der_{err}")
 
 figure(f1)

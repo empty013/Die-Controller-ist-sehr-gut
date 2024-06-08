@@ -1,39 +1,6 @@
 function [U, debug] = u_2inp_p(X)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% function [U] = controller(X)
-%
-% controller for the single-track model
-%
-% inputs: x (x position), y (y position), v (velocity), beta
-% (side slip angle), psi (yaw angle), omega (yaw rate), x_dot (longitudinal
-% velocity), y_dot (lateral velocity), psi_dot (yaw rate (redundant)), 
-% varphi_dot (wheel rotary frequency)
-%
-% external inputs (from 'racetrack.mat'): t_r_x (x coordinate of right 
-% racetrack boundary), t_r_y (y coordinate of right racetrack boundary),
-% t_l_x (x coordinate of left racetrack boundary), t_l_y (y coordinate of
-% left racetrack boundary)
-%
-% outputs: delta (steering angle ), G (gear 1 ... 5), F_b (braking
-% force), zeta (braking force distribution), phi (gas pedal position)
-%
-% files requested: racetrack.mat
-%
-% This file is for use within the "Project Competition" of the "Concepts of
-% Automatic Control" course at the University of Stuttgart, held by F.
-% Allgoewer.
-%
-% prepared by J. M. Montenbruck, Dec. 2013 
-% mailto:jan-maximilian.montenbruck@ist.uni-stuttgart.de
-%
-% written by *STUDENT*, *DATE*
-% mailto:*MAILADDRESS*
-
-
-%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INITIALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function [U] = controller(X)
 %% state vector
 x=X(1); % x position
 y=X(2); % y position
@@ -75,15 +42,15 @@ r = (t_l(pos_next_idx, :) - t_r(pos_next_idx, :)) ...
 %                sin(-pi/2+psi), cos(-pi/2+psi)];
 % p_loc_dot = R_z_loc_glob * [x_dot; y_dot];
 % v_ref = 5;
+p0 = [x; y];
+s = find_s(p0);
+[k_ref, psi0_ref, x0_ref, y0_ref] = referencePath(s);
+x_loc = norm(p0 - [x0_ref; y0_ref]);
+e_psi = psi - psi0_ref;
 
-x_loc = dot(r, [x, y] - t_m(pos_idx, :));
-% x_loc_dot = p_loc_dot(1);
-% 
-% q_ref = [v_ref; beta_ref; ...
-%     psi_ref; omega_ref; 0; 0];
-% q = [v; beta; psi; omega; x_loc; x_loc_dot];
-%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%% STATE FEEDBACK %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% x_loc = dot(r, [x, y] - t_m(pos_idx, :));
+
 load("T_inv.mat", "T_inv");
 persistent x_loc_err_int  x_loc_past
 if isempty(x_loc_err_int)
@@ -96,17 +63,20 @@ x_loc_past = x_loc_err;
 
 kp_v = 10000;
 kp2_v = 10000;
-kp_delta = 0.2;
+kp_delta_e_y = 0.2;
+kp_delta_e_psi = 1;
 ki_delta = -0.05;
 kd_delta = 1;
-u_delta = - kp_delta * x_loc_err - ki_delta * x_loc_err_int; %...
+% u_delta = - kp_delta * x_loc_err - ki_delta * x_loc_err_int; %...
     % - kd_delta * x_loc_err_der;
+u_delta = -kp_delta_e_y * x_loc_err - kp_delta_e_psi * e_psi;
 delta = min(u_delta, 0.53);
 delta = max(-0.53, delta);
 
 x_loc_err_int = x_loc_err_int + 0.01 * x_loc_err;
-
-if abs(delta) < 0.1
+if abs(delta) < 0.05
+    v_ref = 15;
+elseif abs(delta) < 0.1
     v_ref = 10;
 elseif abs(delta) < 0.15
     v_ref = 5;
@@ -138,17 +108,6 @@ else
 end
 
 zeta = 1;
-% delta = 0;
-% Fb = 0;
-% phi = 1;
-
-% delta=0; % steering angle
-% G=1; %gear 1 ... 5
-% Fb=0; % braking force
-% zeta=0.5; %braking force distribution
-% phi=0.2; % gas pedal position
-%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% OUTPUT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 U=[delta G Fb zeta phi]; % input vector
 debug = [v_err x_loc_err x_loc_err_int x_loc_err_der];
 end
