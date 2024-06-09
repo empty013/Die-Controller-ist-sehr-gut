@@ -9,7 +9,7 @@ x0 = x0_f(q0);
 % ub = ub_f(q0);
 f = @costFunction;
 nonlin = @(x) c_nonlin(x, q0, k_ref);
-opts = optimoptions('fmincon','Algorithm','sqp', 'Display','none', ...
+opts = optimoptions('fmincon','Algorithm','interior-point', 'Display','none', ...
     "MaxFunctionEvaluations", 3000, "UseParallel",true);
 sol = fmincon(f, x0, [], [], [], [], lb, ub, nonlin, opts);
 % u = zeros(4, 1);

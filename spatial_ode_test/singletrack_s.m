@@ -117,9 +117,9 @@ load("input_recording.mat", "U_arr");
 % if isempty(ii)
 %     ii = 1;
 % end
-% U = zeros(4, 1);
+% U = zeros(2, 1);
 % if ii <= size(U_arr, 1)
-%     U([1,2,4]) = U_arr(ii, :).';
+%     U = U_arr(ii, :).';
 % end
 % ii = ii + 1;
 

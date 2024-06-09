@@ -90,9 +90,9 @@ subplot(4,1,3)
 plot(tspan, debug(:, 3))
 ylabel("s")
 
-% subplot(4,1,4)
-% plot(tspan, debug(:, 4))
-% ylabel("x_der_{err}")
+subplot(4,1,4)
+plot(tspan, debug(:, 4))
+ylabel("psi_ref")
 
 
 

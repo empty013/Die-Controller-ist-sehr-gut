@@ -54,4 +54,4 @@ end
 zeta = 1;
 % u = [phi, G, Fb, zeta, delta];
 u = [delta, G, Fb, zeta, phi];
-debug = [e_y_0, e_psi_0, s, 0];
+debug = [e_y_0, e_psi_0, s, k_ref];

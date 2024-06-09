@@ -3,7 +3,7 @@ addpath("..\pathGen\")
 global X0 s_delta
 % X = [e_y; e_psi; v; beta; omega; t];
 [~, psi0_ref, x0_ref, y0_ref] = referencePath(0);
-x0 = x0_ref-0.1;
+x0 = x0_ref;
 y0 = y0_ref;
 psi0 = psi0_ref;
 % x0 = -2.5;
@@ -14,6 +14,6 @@ psi0 = psi0_ref;
 % y_ref = 0;
 e_y_0 = cos(psi0_ref) * (y0 - y0_ref) - sin(psi0_ref) * (x0 - x0_ref);
 e_psi_0 = psi0 - psi0_ref;
-X0 = [e_y_0; e_psi_0; 3; 0; 0; 0];
+X0 = [e_y_0 - 0.1; e_psi_0; 3; 0; 0; 0];
 s_delta = 0.02;
-simulate_controlled_singletrack_s(20*0.2)
+simulate_controlled_singletrack_s(2*0.4)

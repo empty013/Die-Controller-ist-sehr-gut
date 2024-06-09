@@ -96,7 +96,7 @@ s_dot_f = matlabFunction(s_dot, "Vars", {q; u; ref});
 
 % q0 = [0; 0; 1; 0; 0; 0];
 % u0 = zeros(size(u));
-ref0 = [0; pi/2];
+% ref0 = [0; pi/2];
 
 % f(q0, u0, ref0)
 % s_dot_f(q0, u0, ref0)

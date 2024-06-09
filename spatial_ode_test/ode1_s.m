@@ -56,9 +56,9 @@ debug = zeros(4, N);
 Y(:,1) = y0;
 % x_ref = -2.5;
 % y_ref = 0;
-psi_ref = pi/2;
+% psi_ref = pi/2;
 debug(1, 1) = x_ref - y0(1) * sin(psi_ref);
-debug(2, 1) = y_ref - y0(1) * cos(psi_ref);
+debug(2, 1) = y_ref + y0(1) * cos(psi_ref);
 debug(3, 1) = x_ref;
 debug(4, 1) = y_ref;
 tic

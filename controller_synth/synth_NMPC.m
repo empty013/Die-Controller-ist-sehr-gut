@@ -3,7 +3,7 @@ clear;
 addpath("..\pathGen\")
 % load("constraints", "ref_func", "x0_f", "lb_f", "ub_f");
 load("constraints", "k_ref_func", "x0_f", "lb", "ub", "s_end", "s_delta");
-opts = optimoptions('fmincon','Algorithm','interior-point', 'Display','none', ...
+opts = optimoptions('fmincon','Algorithm','interior-point', 'Display','iter-detailed', ...
     "MaxFunctionEvaluations",3000, "UseParallel",true);%, 'SpecifyConstraintGradient',true);
 % s_end = 0.5;
 % s_delta = 0.01;
@@ -12,7 +12,7 @@ N = s_end / s_delta;
 % s = 113;
 s = 0;
 % q0 = [0.105; 0.437; 3; 0; 0; 0];
-q0 = [0.1; 0; 3; 0; 0; 0];
+q0 = [-0.1; 0; 3; 0; 0; 0];
 e_y = [q0(1)];
 e_psi = [q0(2)];
 v = [q0(3)];
@@ -82,8 +82,11 @@ sspan = sspan_arr;
 U_arr = [u1, F_b, zeta, delta];
 save("input_recording", "U_arr")
 
+
 x = x_ref_arr.' - e_y .* sin(psi_ref_arr);
 y = y_ref_arr.' + e_y .* cos(psi_ref_arr);
+x_dot = v .* cos(psi_ref_arr + e_psi - beta);
+y_dot = v .* sin(psi_ref_arr + e_psi - beta);
 % TODO: CHECK e_psi!!!
 % Not matching with graph
 
@@ -98,6 +101,8 @@ plot(x,y,'r') % plot the x and y coordinates resulting fromy your controller
 xlabel('x') % label x axis
 ylabel('y') % label y axies
 plot(x_ref_arr, y_ref_arr, 'g')
+% quiver(x, y, x_dot, y_dot)
+
 
 figure("Name", "States", "WindowState","maximized")
 sgtitle("States")

@@ -54,8 +54,13 @@ q_ref_i = [0; 0; v_ref; 0; 0; 0];
 % ub = [ub; q0];
 % Q_tot = blkdiag(Q_tot, Q);
 % t_cost = 2*s_end;
-Q = diag([5e0; 1e1; 1e-4; 1e-1; 1e-4; 1e-3]);
-R = diag([0; 0; 0; 0]);
+Q = diag([5e1; 1e-3; 1e-4; 1e-1; 1e1; 1e-2]);
+e_psi_beta_mixed_weight = 1e0;
+Q(2, 2) = Q(2,2) + e_psi_beta_mixed_weight;
+Q(4, 4) = Q(4,4) + e_psi_beta_mixed_weight;
+Q(2, 4) = Q(2,4) - e_psi_beta_mixed_weight;
+Q(4, 2) = Q(4,2) - e_psi_beta_mixed_weight;
+R = diag([0; 1e-1]);
 for ii = 1:N-1
     if mod(ii, 20) == 0
         ii
@@ -68,6 +73,7 @@ for ii = 1:N-1
     x0 = [x0; [0; 0]];
     lb = [lb; [-1.5; -0.53]];
     ub = [ub; [1; 0.53]];
+    R_tot = blkdiag(R_tot, R);
     
     
     % ref_i(1:2,1) = ref_f(s_arr(ii));
@@ -93,9 +99,7 @@ for ii = 1:N-1
     % lb = [lb; [0; -1; 0; -Inf; -Inf; -Inf]];
     % ub = [ub; [0; 1; Inf; Inf; Inf; Inf]];
 
-
     c_eq = [c_eq; [q_i_end - q_i]];
-    % Q = 
     Q_tot = blkdiag(Q_tot, Q);
 end
 
@@ -103,11 +107,9 @@ end
 % ub(end-5) = 0;
 % lb(end-5) = 0;
 % ub(end-5) = 0;
-% c_eq = [c_eq]
-q_flat = q_arr(:);
-% J = q_flat(7:end).' * Q_tot * q_flat(7:end);% + 10 * q_i(end);
-J = (q_arr(:) - q_ref).' * Q_tot * (q_arr(:) - q_ref);% + 100 * q_i(end);
-% J = q_i(1).^2 * 100 + q_i(2) * 100;
+J = (q_arr(:) - q_ref).' * Q_tot * (q_arr(:) - q_ref) ...
+    + u_arr(:).' * R_tot * u_arr(:) ...
+    + 1e3 * q_i(end) + 0e4 * (q_i(2) - q_i(4))^2 + 1e5 * q_i(1)^2;
 
 s_arr_f = matlabFunction(s_arr, "Vars", s);
 k_ref_func = @(s) referencePathCurv(s_arr_f(s));
